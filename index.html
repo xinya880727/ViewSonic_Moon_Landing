@@ -109,6 +109,7 @@
 
   <!-- 
     加入 disable-pan 屬性，防止相機聚焦點偏移，確保永遠依賴中線旋轉
+    加入 scale 屬性：單獨調整網頁版的視覺大小 (X Y Z)，不會影響 AR 尺寸
   -->
   <model-viewer 
     id="my-viewer"
@@ -119,6 +120,7 @@
     camera-controls 
     disable-pan
     auto-rotate
+    scale="1.5 1.5 1.5"
     shadow-intensity="1.5"
     environment-image="neutral"
     exposure="1.2">
@@ -137,7 +139,7 @@
     import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
 
     // ==========================================
-    // ⚙️ 在這裡設定你的檔案名稱與想要的「縮小倍率」
+    // ⚙️ 在這裡設定你的檔案名稱與想要的「縮小倍率」(會同時影響 AR 實體大小)
     // ==========================================
     const modelFileName = 'Moon.glb'; // 你的原始模型檔案名稱
     const scaleFactor = 0.1;         // 0.01 代表把原始物理尺寸縮小 100 倍！(如果還是太大就改 0.001)
