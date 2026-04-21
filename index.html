@@ -140,7 +140,7 @@
     // ⚙️ 在這裡設定你的檔案名稱與想要的「縮小倍率」
     // ==========================================
     const modelFileName = 'Moon.glb'; // 你的原始模型檔案名稱
-    const scaleFactor = 0.001;         // 0.01 代表把原始物理尺寸縮小 100 倍！(如果還是太大就改 0.001)
+    const scaleFactor = 0.01;         // 0.01 代表把原始物理尺寸縮小 100 倍！(如果還是太大就改 0.001)
     // ==========================================
 
     const viewer = document.getElementById('my-viewer');
@@ -152,8 +152,22 @@
     loader.load(modelFileName, async (gltf) => {
       const scene = gltf.scene;
       
-      // 🎯 核心魔法：直接在記憶體中將模型強制縮小
-      scene.scale.set(scaleFactor, scaleFactor, scaleFactor);
+      // 🎯 核心魔法升級：將縮放「烘焙 (Bake)」到模型的每個頂點中
+      // 解決 iOS/Android AR 系統強制忽略整體 Scale 的問題，強行改變物理尺寸
+      const processedGeometries = new Set();
+      scene.traverse((child) => {
+        if (child.isMesh) {
+          // 改變幾何體真正的頂點座標
+          if (!processedGeometries.has(child.geometry)) {
+            child.geometry.scale(scaleFactor, scaleFactor, scaleFactor);
+            processedGeometries.add(child.geometry);
+          }
+        }
+        if (child.position) {
+          // 如果模型有多個零件，把它們之間的距離也同步縮小，防止模型解體
+          child.position.multiplyScalar(scaleFactor);
+        }
+      });
 
       // 匯出成新的（已經縮小的）GLB 給網頁與 Android
       const gltfExporter = new GLTFExporter();
