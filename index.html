@@ -83,17 +83,19 @@
   <!-- UI 介面 -->
   <div class="header">
     <h1>✨ 探索自訂 AR 模型</h1>
-    <p>拖曳可旋轉縮放。使用手機瀏覽並點擊下方按鈕即可投影至現實世界！</p>
+    <p>雙指捏合可縮放，拖曳可旋轉。使用手機瀏覽並點擊下方按鈕即可投影至現實世界！</p>
   </div>
 
   <!-- 
     Model Viewer 元件
     📝 請將 src 與 ios-src 替換成你自己檔案的路徑或網址
+    📏 scale="1 1 1"：在這裡預設模型初始大小 (X Y Z 軸比例)。例如 "0.5 0.5 0.5" 是縮小一半，"2 2 2" 是放大兩倍。
   -->
   <model-viewer 
-    src="Moon.glb"
-    ios-src="Moon.usdz"
+    src="你的模型檔案.glb"
+    ios-src="你的模型檔案.usdz"
     alt="我的 3D 模型"
+    scale="1 1 1"
     ar 
     ar-modes="webxr scene-viewer quick-look" 
     camera-controls 
