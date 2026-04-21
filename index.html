@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apollo 11 : Moon Landing</title>
+  <title>自訂 Web AR 體驗</title>
   
   <!-- 引入 Google 的 model-viewer -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
@@ -21,7 +21,7 @@
       
       /* --- 背景圖設定 --- */
       /* 請將下方 url 替換成你設計的 1920x1080 圖片路徑 */
-      background-image: url('你的背景圖片.jpg'); 
+      background-image: url('bg_1920x1080.jpg'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -102,14 +102,16 @@
   <!-- 
     Model Viewer 元件
     📝 請將 src 與 ios-src 替換成你自己檔案的路徑或網址
-    📏 scale="0.1 0.1 0.1"：在這裡預設模型初始大小 (X Y Z 軸比例)。
+    📏 scale="0.1 0.1 0.1"：控制「網頁預覽時」的大小。
+    🌟 ar-scale="auto"：解決 AR 太大的救星！這會強制手機 AR 系統忽略原始巨大尺寸，自動將模型縮小到適合螢幕的大小。
   -->
   <model-viewer 
     src="Moon.glb"
     ios-src="Moon.usdz"
     alt="我的 3D 模型"
-    scale="1 1 1"
+    scale="0.1 0.1 0.1"
     ar 
+    ar-scale="auto"
     ar-modes="webxr scene-viewer quick-look" 
     camera-controls 
     auto-rotate
