@@ -8,7 +8,7 @@
   <!-- 引入 Google 的 model-viewer -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
   
-  <!-- 引入 Three.js 核心與轉換工具，用於在背景動態縮小與置中模型 -->
+  <!-- 引入 Three.js 核心與轉換工具，用於在背景動態縮小模型 -->
   <script type="importmap">
     {
       "imports": {
@@ -30,6 +30,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       
       /* --- 背景圖設定 --- */
+      /* 請將下方 url 替換成你設計的 1920x1080 圖片路徑 */
       background-image: url('bg_1920x1080.jpg'); 
       background-size: cover;
       background-position: center;
@@ -106,6 +107,10 @@
     <p>雙指捏合可縮放，拖曳可旋轉。使用手機瀏覽並點擊下方按鈕即可投影至現實世界！</p>
   </div>
 
+  <!-- 
+    把原來的 src 和 ios-src 拿掉，我們改由下方的 JavaScript 動態注入縮小後的版本 
+    保留 ar-scale="fixed"，讓 AR 系統乖乖聽我們程式碼縮小後的尺寸
+  -->
   <model-viewer 
     id="my-viewer"
     alt="我的 3D 模型"
@@ -118,11 +123,13 @@
     environment-image="neutral"
     exposure="1.2">
     
+    <!-- 按鈕初始狀態設為禁用，等模型縮小完成後再開啟 -->
     <button slot="ar-button" class="ar-button" id="ar-btn" disabled>
       <span class="btn-text">⏳ 模型處理中...</span>
     </button>
   </model-viewer>
 
+  <!-- 自動縮小 3D 模型的魔法腳本 -->
   <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -130,59 +137,58 @@
     import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
 
     // ==========================================
-    // ⚙️ 設定檔案名稱與縮小倍率
+    // ⚙️ 在這裡設定你的檔案名稱與想要的「縮小倍率」
     // ==========================================
-    const modelFileName = 'Moon.glb'; 
-    const scaleFactor = 0.1;          
+    const modelFileName = 'Moon.glb'; // 你的原始模型檔案名稱
+    const scaleFactor = 0.1;         // 0.01 代表把原始物理尺寸縮小 100 倍！(如果還是太大就改 0.001)
     // ==========================================
 
     const viewer = document.getElementById('my-viewer');
     const arBtn = document.getElementById('ar-btn');
     const btnText = arBtn.querySelector('.btn-text');
 
+    // 載入原始的巨大模型
     const loader = new GLTFLoader();
     loader.load(modelFileName, async (gltf) => {
-      const originalScene = gltf.scene;
+      const scene = gltf.scene;
       
-      // 🎯 核心魔法升級：使用「Wrapper (包裝)」法解決置中與縮放問題
-      
-      // 1. 計算原始模型的整體包圍盒與中心點
-      const box = new THREE.Box3().setFromObject(originalScene);
-      const center = box.getCenter(new THREE.Vector3());
+      // 🎯 核心魔法升級：將縮放「烘焙 (Bake)」到模型的每個頂點中
+      // 解決 iOS/Android AR 系統強制忽略整體 Scale 的問題，強行改變物理尺寸
+      const processedGeometries = new Set();
+      scene.traverse((child) => {
+        if (child.isMesh) {
+          // 改變幾何體真正的頂點座標
+          if (!processedGeometries.has(child.geometry)) {
+            child.geometry.scale(scaleFactor, scaleFactor, scaleFactor);
+            processedGeometries.add(child.geometry);
+          }
+        }
+        if (child.position) {
+          // 如果模型有多個零件，把它們之間的距離也同步縮小，防止模型解體
+          child.position.multiplyScalar(scaleFactor);
+        }
+      });
 
-      // 2. 建立一個全新的根場景 (Wrapper)
-      // 這樣做可以避免 AR 系統強制忽略根節點(Root)縮放與位移的 Bug
-      const rootScene = new THREE.Scene();
-      
-      // 將原本的模型加入這個新的根場景中，它會變成子節點
-      rootScene.add(originalScene);
-
-      // 3. 置中修正：將原始模型反向位移，扣除中心點座標
-      // 這會讓模型的幾何中心完美對齊原點 (0,0,0)，徹底解決自轉軸偏心的問題！
-      originalScene.position.sub(center);
-
-      // 4. 縮放修正：對子節點進行實體縮放
-      originalScene.scale.set(scaleFactor, scaleFactor, scaleFactor);
-
-      // 匯出成新的 GLB 給網頁與 Android (注意：我們匯出的是包裝好的 rootScene)
+      // 匯出成新的（已經縮小的）GLB 給網頁與 Android
       const gltfExporter = new GLTFExporter();
-      gltfExporter.parse(rootScene, async (newGltf) => {
+      gltfExporter.parse(scene, async (newGltf) => {
         const glbBlob = new Blob([newGltf], { type: 'application/octet-stream' });
         const glbUrl = URL.createObjectURL(glbBlob);
         
+        // 將縮小後的 GLB 餵給 model-viewer
         viewer.src = glbUrl;
 
-        // 自動生出 iOS 專用的 USDZ
+        // 同時，我們幫你自動生出一個 iOS 專用的 USDZ！(你以後不需要自己轉檔 usdz 了)
         try {
           const usdzExporter = new USDZExporter();
-          const usdzData = await usdzExporter.parse(rootScene);
+          const usdzData = await usdzExporter.parse(scene);
           const usdzBlob = new Blob([usdzData], { type: 'model/vnd.usdz+zip' });
           viewer.setAttribute('ios-src', URL.createObjectURL(usdzBlob));
         } catch (e) {
           console.warn('iOS USDZ 轉換失敗', e);
         }
 
-        // 開放 AR 按鈕
+        // 處理完成，開放 AR 按鈕讓使用者點擊
         arBtn.disabled = false;
         btnText.innerHTML = `
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
