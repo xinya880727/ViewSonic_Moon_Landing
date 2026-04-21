@@ -108,8 +108,7 @@
   </div>
 
   <!-- 
-    把原來的 src 和 ios-src 拿掉，我們改由下方的 JavaScript 動態注入縮小後的版本 
-    保留 ar-scale="fixed"，讓 AR 系統乖乖聽我們程式碼縮小後的尺寸
+    加入 disable-pan 屬性，防止相機聚焦點偏移，確保永遠依賴中線旋轉
   -->
   <model-viewer 
     id="my-viewer"
@@ -118,6 +117,7 @@
     ar-scale="fixed"
     ar-modes="webxr scene-viewer quick-look" 
     camera-controls 
+    disable-pan
     auto-rotate
     shadow-intensity="1.5"
     environment-image="neutral"
