@@ -130,11 +130,14 @@
     environment-image="neutral"
     exposure="1.2">
     
-    <!-- 按鈕初始狀態設為禁用，等模型縮小完成後再開啟 -->
-    <button slot="ar-button" class="ar-button" id="ar-btn" disabled>
-      <span class="btn-text">模型處理中...</span>
-    </button>
+    <!-- 🎯 使用一個隱藏的空 div 佔用 slot="ar-button"，這樣就能徹底隱藏官方預設按鈕 -->
+    <div slot="ar-button" style="display: none;"></div>
   </model-viewer>
+
+  <!-- 🎯 將我們自訂的按鈕「移出」 model-viewer 標籤外，保證它絕對不會被隱藏 -->
+  <button class="ar-button" id="ar-btn" disabled>
+    <span class="btn-text">模型處理中...</span>
+  </button>
 
   <!-- 自動縮小 3D 模型的魔法腳本 -->
   <script type="module">
@@ -153,6 +156,11 @@
     const viewer = document.getElementById('my-viewer');
     const arBtn = document.getElementById('ar-btn');
     const btnText = arBtn.querySelector('.btn-text');
+
+    // 🎯 新增：手動監聽按鈕點擊事件，觸發 AR (電腦版點擊會自動彈出 QR Code)
+    arBtn.addEventListener('click', () => {
+      viewer.activateAR();
+    });
 
     // 載入原始的巨大模型
     const loader = new GLTFLoader();
