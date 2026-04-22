@@ -113,7 +113,7 @@
   <!-- 
     加入 disable-pan 屬性：確保永遠依賴中線旋轉
     移除無效的 scale 屬性
-    加入 camera-orbit 與 max-camera-orbit：用拉遠攝影機的方式來縮小網頁視覺比例
+    🎯 將 camera-orbit 的距離從 100% 改為 200%，讓攝影機拉遠，預設模型視覺就會縮小
   -->
   <model-viewer 
     id="my-viewer"
@@ -124,7 +124,7 @@
     camera-controls 
     disable-pan
     auto-rotate
-    camera-orbit="0deg 75deg 100%" 
+    camera-orbit="0deg 75deg 200%" 
     max-camera-orbit="auto auto 400%"
     shadow-intensity="1.5"
     environment-image="neutral"
