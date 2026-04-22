@@ -88,7 +88,6 @@
     // ⚙️ 設定區域
     // ==========================================
     const modelFileName = 'Moon03.glb'; 
-    const usdzFileName = 'Moon03.usdz'; // 新增：在此設定您的 USDZ 檔案名稱
     const scaleFactor = 0.1; 
     // ==========================================
 
@@ -126,11 +125,14 @@
         const glbUrl = URL.createObjectURL(glbBlob);
         
         // 🎯 關鍵步驟：
-        // 1. 指定 ios-src，讓 iOS 裝置在 AR 模式下直接讀取現成的 USDZ 檔案
-        viewer.setAttribute('ios-src', usdzFileName + cacheBuster);
+        // 1. 先清除 ios-src，強迫 model-viewer 丟棄舊有的 USDZ 連結
+        viewer.removeAttribute('ios-src');
         
-        // 2. 更新 src 為縮小後的 GLB 模型 (供網頁端 3D 預覽或 Android AR 使用)
+        // 2. 更新 src 為縮小後的模型
         viewer.src = glbUrl;
+
+        // 3. 在 model-viewer 3.0+ 中，不需要手動轉 USDZ。
+        // 它會自動偵測到 src 改變，並在 iOS 進入 AR 時自動重新生成對應的 USDZ。
 
         // 處理完成
         arBtn.disabled = false;
