@@ -87,9 +87,8 @@
       cursor: pointer;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       
-      /* 🎯 加入 !important 強制覆蓋 model-viewer 的隱藏機制，並確保在最上層 */
-      display: flex !important;
-      z-index: 100;
+      /* 🎯 移除 !important，讓 model-viewer 可以自動在電腦版隱藏它 */
+      display: flex;
       
       align-items: center;
       gap: 8px;
@@ -107,14 +106,9 @@
 <body>
 
   <div class="header">
-    <h3>雙指捏合可縮放，拖曳可旋轉。點擊下方按鈕開啟 AR 擴增實境，在現實世界觀看月球模型 ！</h3>
+    <h4>雙指捏合可縮放，拖曳可旋轉。點擊下方按鈕開啟 AR 擴增實境，在現實世界觀看月球模型 ！</h4>
   </div>
 
-  <!-- 
-    加入 disable-pan 屬性：確保永遠依賴中線旋轉
-    移除無效的 scale 屬性
-    🎯 將 camera-orbit 的距離從 100% 改為 200%，讓攝影機拉遠，預設模型視覺就會縮小
-  -->
   <model-viewer 
     id="my-viewer"
     alt="我的 3D 模型"
@@ -130,14 +124,11 @@
     environment-image="neutral"
     exposure="1.2">
     
-    <!-- 🎯 使用一個隱藏的空 div 佔用 slot="ar-button"，這樣就能徹底隱藏官方預設按鈕 -->
-    <div slot="ar-button" style="display: none;"></div>
+    <!-- 🎯 恢復原狀：將按鈕放回標籤內部，加上 slot="ar-button" 讓官方自動接管顯示邏輯 -->
+    <button slot="ar-button" class="ar-button" id="ar-btn" disabled>
+      <span class="btn-text">模型處理中...</span>
+    </button>
   </model-viewer>
-
-  <!-- 🎯 將我們自訂的按鈕「移出」 model-viewer 標籤外，保證它絕對不會被隱藏 -->
-  <button class="ar-button" id="ar-btn" disabled>
-    <span class="btn-text">模型處理中...</span>
-  </button>
 
   <!-- 自動縮小 3D 模型的魔法腳本 -->
   <script type="module">
@@ -156,11 +147,6 @@
     const viewer = document.getElementById('my-viewer');
     const arBtn = document.getElementById('ar-btn');
     const btnText = arBtn.querySelector('.btn-text');
-
-    // 🎯 新增：手動監聽按鈕點擊事件，觸發 AR (電腦版點擊會自動彈出 QR Code)
-    arBtn.addEventListener('click', () => {
-      viewer.activateAR();
-    });
 
     // 載入原始的巨大模型
     const loader = new GLTFLoader();
@@ -216,7 +202,6 @@
       }, { binary: true });
 
     }, undefined, (error) => {
-      // 🎯 將寫死的 Moon.glb 改成變數，並加上本機伺服器提示
       console.error(`載入原始模型失敗，請確認 ${modelFileName} 檔案是否存在，或是否忘記使用 Live Server 開啟網頁？`, error);
       btnText.innerText = '找不到模型檔案';
     });
